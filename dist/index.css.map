@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "sources": [],
-  "sourcesContent": [],
-  "mappings": "",
+  "sources": ["../src/swup/transition.css"],
+  "sourcesContent": ["/* Slide page transition */\n.transition-main {\n  transition-property: opacity, transform;\n  transition-duration: 250ms;\n  transition-timing-function: cubic-bezier(0.77, 0, 0.175, 1);\n  transform: translateX(0);\n  opacity: 1;\n}\n\n/* Default: slide right to left (going right) */\nhtml.is-animating .transition-main {\n  opacity: 0;\n  transform: translateX(-1em);\n}\n\nhtml.is-leaving .transition-main {\n  transform: translateX(1em);\n}\n\n/* Reverse: slide left to right (going left) */\nhtml.to-left.is-animating .transition-main {\n  opacity: 0;\n  transform: translateX(1em);\n}\n\nhtml.to-left.is-leaving .transition-main {\n  transform: translateX(-1em);\n}\n"],
+  "mappings": ";;AACA,CAAC;AACC,uBAAqB,OAAO,EAAE;AAC9B,uBAAqB;AACrB,8BAA4B,aAAa,IAAI,EAAE,CAAC,EAAE,KAAK,EAAE;AACzD,aAAW,WAAW;AACtB,WAAS;AACX;AAGA,IAAI,CAAC,aAAa,CATjB;AAUC,WAAS;AACT,aAAW,WAAW;AACxB;AAEA,IAAI,CAAC,WAAW,CAdf;AAeC,aAAW,WAAW;AACxB;AAGA,IAAI,CAAC,OAAO,CAVP,aAUqB,CAnBzB;AAoBC,WAAS;AACT,aAAW,WAAW;AACxB;AAEA,IAAI,CALC,OAKO,CAVP,WAUmB,CAxBvB;AAyBC,aAAW,WAAW;AACxB;",
   "names": []
 }

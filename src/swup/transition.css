@@ -1,5 +1,4 @@
-/* src/index.css */
-/* src/swup/transition.css */
+/* Slide page transition */
 .transition-main {
   transition-property: opacity, transform;
   transition-duration: 250ms;
@@ -7,18 +6,23 @@
   transform: translateX(0);
   opacity: 1;
 }
+
+/* Default: slide right to left (going right) */
 html.is-animating .transition-main {
   opacity: 0;
   transform: translateX(-1em);
 }
+
 html.is-leaving .transition-main {
   transform: translateX(1em);
 }
+
+/* Reverse: slide left to right (going left) */
 html.to-left.is-animating .transition-main {
   opacity: 0;
   transform: translateX(1em);
 }
+
 html.to-left.is-leaving .transition-main {
   transform: translateX(-1em);
 }
-/*# sourceMappingURL=index.css.map */
