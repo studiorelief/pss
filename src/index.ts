@@ -14,7 +14,7 @@ import './index.css';
 import { restartWebflow } from '@finsweet/ts-utils';
 
 import { destroyGradientAnimation, initGradientAnimation } from './decorative/gradientAnimation';
-import { destroyFsLibrairiesScripts, initFsLibrairiesScripts } from './swup/fsLibrairies';
+import { destroyFsLibrariesScripts, initFsLibrariesScripts } from './swup/fsLibraries';
 import { initSwup } from './swup/swupTransition';
 import { destroyNavbar, initNavbar, resetNavbar } from './utils/navbar';
 import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
@@ -28,7 +28,7 @@ import { initTopNavLoop } from './utils/topNavLoop';
 
 const initGlobalFunctions = (): void => {
   // Scripts
-  initFsLibrairiesScripts();
+  initFsLibrariesScripts();
   initNavbar();
   initGradientAnimation();
 };
@@ -96,7 +96,7 @@ const init = () => {
    * content:replace — Nouveau DOM injecté, on détruit l'ancien
    */
   swup.hooks.on('content:replace', () => {
-    destroyFsLibrairiesScripts();
+    destroyFsLibrariesScripts();
     destroyNavbar();
     destroyGradientAnimation();
   });

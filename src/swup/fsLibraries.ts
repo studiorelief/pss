@@ -1,6 +1,6 @@
 const loadedScripts: HTMLScriptElement[] = [];
 
-const FS_LIBRAIRIES_SRCS = [
+const FS_LIBRARIES_SRCS = [
   'https://cdn.jsdelivr.net/npm/@finsweet/attributes-accordion@1/accordion.js',
 ];
 
@@ -18,11 +18,11 @@ function loadScript(src: string) {
   });
 }
 
-export function initFsLibrairiesScripts() {
-  return Promise.all(FS_LIBRAIRIES_SRCS.map(loadScript));
+export function initFsLibrariesScripts() {
+  return Promise.all(FS_LIBRARIES_SRCS.map(loadScript));
 }
 
-export function destroyFsLibrairiesScripts(): void {
+export function destroyFsLibrariesScripts(): void {
   loadedScripts.forEach((script) => {
     if (script.parentNode) {
       script.parentNode.removeChild(script);
