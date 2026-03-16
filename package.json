@@ -54,6 +54,7 @@
   "dependencies": {
     "@finsweet/ts-utils": "^0.40.0",
     "@swup/head-plugin": "^2.3.1",
+    "@swup/preload-plugin": "^3.2.11",
     "swup": "^4.8.3"
   },
   "packageManager": "pnpm@10.2.0",

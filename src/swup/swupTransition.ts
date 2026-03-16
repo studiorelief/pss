@@ -1,6 +1,7 @@
 import './transition.css';
 
 import SwupHeadPlugin from '@swup/head-plugin';
+import SwupPreloadPlugin from '@swup/preload-plugin';
 import Swup from 'swup';
 
 // Spatial page order: Chems (left) ← Home (center) → Sex (right)
@@ -17,25 +18,98 @@ function getPagePosition(url: string): number {
 
 export function initSwup(): Swup {
   const swup = new Swup({
-    animationSelector: '[class*="transition-"]',
+    animationSelector: false,
     containers: ['#swup'],
-    plugins: [new SwupHeadPlugin({ persistAssets: true })],
+    linkSelector: 'a[href]:not(.w-tab-link)',
+    plugins: [
+      new SwupHeadPlugin({ persistAssets: true }),
+      new SwupPreloadPlugin({ preloadVisibleLinks: { delay: 0, threshold: 0 } }),
+    ],
   });
 
-  // Set slide direction based on page spatial order
+  let direction: 'left' | 'right' = 'right';
+  let oldContentHTML = '';
+  let newContentHTML = '';
+  let savedScrollY = 0;
+
   swup.hooks.on('visit:start', (visit) => {
     const from = getPagePosition(visit.from.url);
     const to = getPagePosition(visit.to.url);
-
-    if (to > from) {
-      document.documentElement.classList.add('to-right');
-    } else {
-      document.documentElement.classList.add('to-left');
-    }
+    direction = to > from ? 'right' : 'left';
   });
 
-  swup.hooks.on('animation:out:end', () => {
-    document.documentElement.classList.remove('to-left', 'to-right');
+  // Snapshot old content + scroll position before Swup replaces it
+  swup.hooks.before('content:replace', () => {
+    const container = document.querySelector('#swup');
+    if (container) oldContentHTML = container.innerHTML;
+    savedScrollY = window.scrollY;
+  });
+
+  // Save new content after Swup replaces it (but don't build carousel yet)
+  swup.hooks.on('content:replace', () => {
+    const container = document.querySelector('#swup');
+    if (container) newContentHTML = container.innerHTML;
+  });
+
+  // Build carousel, animate, cleanup — all in one place, no race condition
+  swup.hooks.replace('animation:in:await', () => {
+    return new Promise<void>((resolve) => {
+      const container = document.querySelector('#swup') as HTMLElement;
+      if (!container || !oldContentHTML || !newContentHTML) {
+        oldContentHTML = '';
+        newContentHTML = '';
+        resolve();
+        return;
+      }
+
+      // Build carousel track
+      container.style.overflow = 'hidden';
+
+      const track = document.createElement('div');
+      track.className = 'slide-track';
+
+      const oldPanel = document.createElement('div');
+      oldPanel.className = 'slide-panel';
+      oldPanel.style.transform = `translateY(-${savedScrollY}px)`;
+      oldPanel.innerHTML = oldContentHTML;
+
+      const newPanel = document.createElement('div');
+      newPanel.className = 'slide-panel';
+      newPanel.innerHTML = newContentHTML;
+
+      if (direction === 'right') {
+        track.append(oldPanel, newPanel);
+        track.style.transform = 'translateX(0)';
+      } else {
+        track.append(newPanel, oldPanel);
+        track.style.transform = 'translateX(-50%)';
+      }
+
+      container.innerHTML = '';
+      container.appendChild(track);
+      window.scrollTo(0, 0);
+
+      // Listen for the track's own transform transition end
+      const onEnd = (e: TransitionEvent) => {
+        if (e.target !== track || e.propertyName !== 'transform') return;
+        track.removeEventListener('transitionend', onEnd);
+
+        const finalPanel = direction === 'right' ? track.lastElementChild : track.firstElementChild;
+        if (finalPanel) container.innerHTML = finalPanel.innerHTML;
+        container.style.overflow = '';
+        oldContentHTML = '';
+        newContentHTML = '';
+        resolve();
+      };
+      track.addEventListener('transitionend', onEnd);
+
+      // Double-rAF: ensures browser paints initial state before triggering slide
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          track.style.transform = direction === 'right' ? 'translateX(-50%)' : 'translateX(0)';
+        });
+      });
+    });
   });
 
   return swup;

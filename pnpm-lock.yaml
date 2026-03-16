@@ -14,6 +14,9 @@ importers:
       '@swup/head-plugin':
         specifier: ^2.3.1
         version: 2.3.1(swup@4.8.3)
+      '@swup/preload-plugin':
+        specifier: ^3.2.11
+        version: 3.2.11(swup@4.8.3)
       swup:
         specifier: ^4.8.3
         version: 4.8.3
@@ -383,6 +386,11 @@ packages:
 
   '@swup/plugin@4.0.0':
     resolution: {integrity: sha512-3Kq31BJxnzoPg643YxGoWQggoU6VPKZpdE5CqqmP7wwkpCYTzkRmrfcQ29mGhsSS7xfS7D33iZoBiwY+wPoo2A==}
+
+  '@swup/preload-plugin@3.2.11':
+    resolution: {integrity: sha512-dq50u+d8L+63/pU6dUDnypuBoF49ubjRzRJqitGem2K7wRn7xccxRSvdyeGKdA2vNvzGDAmLfwVTZdSotvvDrw==}
+    peerDependencies:
+      swup: ^4.0.0
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
@@ -1416,6 +1424,11 @@ snapshots:
 
   '@swup/plugin@4.0.0':
     dependencies:
+      swup: 4.8.3
+
+  '@swup/preload-plugin@3.2.11(swup@4.8.3)':
+    dependencies:
+      '@swup/plugin': 4.0.0
       swup: 4.8.3
 
   '@types/estree@1.0.6': {}
