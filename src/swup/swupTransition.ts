@@ -4,6 +4,8 @@ import SwupHeadPlugin from '@swup/head-plugin';
 import SwupPreloadPlugin from '@swup/preload-plugin';
 import Swup from 'swup';
 
+import { activateTabFromURL } from '$utils/tabDeepLink';
+
 // Spatial page order: Chems (left) ← Home (center) → Sex (right)
 const PAGE_ORDER: Record<string, number> = {
   '/': 0,
@@ -27,6 +29,11 @@ export function initSwup(): Swup {
     ],
   });
 
+  // Preload all known pages immediately (dropdown links aren't "visible" to the observer)
+  for (const path of Object.keys(PAGE_ORDER)) {
+    if (path !== '/') void fetch(path);
+  }
+
   let direction: 'left' | 'right' = 'right';
   let oldContentHTML = '';
   let newContentHTML = '';
@@ -45,8 +52,9 @@ export function initSwup(): Swup {
     savedScrollY = window.scrollY;
   });
 
-  // Save new content after Swup replaces it (but don't build carousel yet)
+  // Activate correct tab + snapshot new content before animation
   swup.hooks.on('content:replace', () => {
+    activateTabFromURL();
     const container = document.querySelector('#swup');
     if (container) newContentHTML = container.innerHTML;
   });

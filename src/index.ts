@@ -13,9 +13,12 @@ import './index.css';
  */
 import { restartWebflow } from '@finsweet/ts-utils';
 
+import { destroyGradientAnimation, initGradientAnimation } from './decorative/gradientAnimation';
 import { destroyFsLibrairiesScripts, initFsLibrairiesScripts } from './swup/fsLibrairies';
 import { initSwup } from './swup/swupTransition';
+import { destroyNavbar, initNavbar, resetNavbar } from './utils/navbar';
 import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
+import { initTopNavLoop } from './utils/topNavLoop';
 
 /*
  *==========================================
@@ -26,6 +29,8 @@ import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
 const initGlobalFunctions = (): void => {
   // Scripts
   initFsLibrairiesScripts();
+  initNavbar();
+  initGradientAnimation();
 };
 
 /*
@@ -38,6 +43,9 @@ const initGlobalFunctions = (): void => {
 const init = () => {
   // Init global functions on first load
   initGlobalFunctions();
+
+  // Top nav marquee — outside #swup, init once and never destroy
+  initTopNavLoop();
 
   // Tabs: custom click handler (replaces Webflow's broken tab JS after SPA nav)
   setupTabs();
@@ -78,10 +86,19 @@ const init = () => {
    */
 
   /**
+   * visit:start — Reset navbar dès le début de la navigation
+   */
+  swup.hooks.on('visit:start', () => {
+    resetNavbar();
+  });
+
+  /**
    * content:replace — Nouveau DOM injecté, on détruit l'ancien
    */
   swup.hooks.on('content:replace', () => {
     destroyFsLibrairiesScripts();
+    destroyNavbar();
+    destroyGradientAnimation();
   });
 
   /**
@@ -89,7 +106,6 @@ const init = () => {
    */
   swup.hooks.on('animation:in:end', () => {
     initGlobalFunctions();
-    activateTabFromURL();
     restartWebflow();
   });
 };
