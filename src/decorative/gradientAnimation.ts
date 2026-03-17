@@ -1,8 +1,8 @@
 /**
- * Animated gradient blobs on .bg-layer-animation
- * Uses color-dodge blend mode over the background image beneath.
- * Wave-like motion with randomized positions per container.
- * Mouse interaction: blobs shift with a parallax effect on hover.
+ * Animated gradient blobs for every .bg-layer-animation on the page.
+ * Each layer gets its own set of randomised blobs + dark overlay.
+ * First load: fade-in. Swup navigation: instant (blobs ready before page slides in).
+ * Mouse parallax via GSAP.
  */
 
 import './gradient-animation.css';
@@ -11,23 +11,28 @@ import gsap from 'gsap';
 
 const COLORS = ['var(--brand--blue-900)', 'var(--brand--pink-900)'];
 const BLOB_COUNT = 8;
+const DATA_INIT = 'data-gradient-init';
 
-const mouseListeners = new Map<HTMLElement, (e: MouseEvent) => void>();
-const leaveListeners = new Map<HTMLElement, () => void>();
+interface BlobRef {
+  el: HTMLElement;
+  depth: number;
+}
+
+const allBlobs: BlobRef[] = [];
+let mouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+let mouseLeaveHandler: (() => void) | null = null;
 
 function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
-function generateBlob(id: string, index: number) {
-  // ~20% pink: only indices 3 and 7 out of 8
+function generateBlob(index: number, uid: string) {
   const isPink = index === 3 || index === 7;
   const color = isPink ? COLORS[1] : COLORS[0];
   const size = rand(40, 70);
   const x = rand(-10, 100);
   const y = rand(-10, 100);
   const duration = rand(6, 12);
-  const delay = rand(0, 4);
   const opacity = isPink ? rand(0.55, 0.75) : rand(0.5, 0.7);
   const depth = rand(0.3, 1);
 
@@ -36,7 +41,7 @@ function generateBlob(id: string, index: number) {
   const dx2 = rand(10, 25) * (index % 2 === 0 ? -1 : 1);
   const dy2 = rand(-15, -5);
 
-  const animName = `blob-${id}-${index}`;
+  const animName = `blob-${uid}-${index}`;
 
   const keyframes = `
 @keyframes ${animName} {
@@ -54,102 +59,108 @@ function generateBlob(id: string, index: number) {
     opacity: String(opacity),
     left: `${x}%`,
     top: `${y}%`,
-    animation: `${animName} ${duration}s ease-in-out ${delay}s infinite`,
+    animation: `${animName} ${duration}s ease-in-out infinite`,
   };
 
   return { keyframes, inlineStyle, depth };
 }
 
-let instanceCounter = 0;
+let uidCounter = 0;
 
-export function initGradientAnimation(): void {
-  const containers = document.querySelectorAll<HTMLElement>('.bg-layer-animation');
+function populateLayer(layer: HTMLElement): void {
+  const uid = String(uidCounter);
+  uidCounter += 1;
+  let css = '';
 
-  containers.forEach((container) => {
-    const id = String(instanceCounter);
-    instanceCounter += 1;
-    container.dataset.blobId = id;
+  for (let i = 0; i < BLOB_COUNT; i += 1) {
+    const { keyframes, inlineStyle, depth } = generateBlob(i, uid);
+    css += keyframes;
 
-    // Dark overlay as sibling before the blend layer to darken the image behind
-    if (!container.parentElement?.querySelector('[data-gradient-overlay]')) {
-      const overlay = document.createElement('div');
-      overlay.className = 'gradient-overlay';
-      overlay.dataset.gradientOverlay = 'true';
-      container.parentElement?.insertBefore(overlay, container);
-    }
+    const el = document.createElement('div');
+    el.className = 'gradient-blob';
+    Object.assign(el.style, inlineStyle);
+    layer.appendChild(el);
+    allBlobs.push({ el, depth });
+  }
 
-    let css = '';
-    const blobs: { el: HTMLElement; depth: number }[] = [];
+  const styleTag = document.createElement('style');
+  styleTag.textContent = css;
+  layer.appendChild(styleTag);
 
-    for (let i = 0; i < BLOB_COUNT; i += 1) {
-      const { keyframes, inlineStyle, depth } = generateBlob(id, i);
-      css += keyframes;
+  // Dark overlay as sibling before the layer
+  const parent = layer.parentElement;
+  if (parent && !parent.querySelector('[data-gradient-overlay]')) {
+    const overlay = document.createElement('div');
+    overlay.className = 'gradient-overlay';
+    overlay.dataset.gradientOverlay = 'true';
+    parent.insertBefore(overlay, layer);
+  }
 
-      const el = document.createElement('div');
-      el.className = 'gradient-blob';
-      Object.assign(el.style, inlineStyle);
-      container.appendChild(el);
-      blobs.push({ el, depth });
-    }
+  layer.setAttribute(DATA_INIT, 'true');
 
-    const styleTag = document.createElement('style');
-    styleTag.textContent = css;
-    container.appendChild(styleTag);
+  // Fade in from 0 → 1
+  gsap.fromTo(layer, { opacity: 0 }, { opacity: 1, delay: 0, duration: 1.5, ease: 'power2.out' });
 
-    // Mouse parallax
-    const maxShift = 40;
+  const overlay = parent?.querySelector<HTMLElement>('.gradient-overlay');
+  if (overlay) {
+    gsap.fromTo(
+      overlay,
+      { opacity: 0 },
+      { opacity: 1, delay: 0, duration: 1.5, ease: 'power2.out' }
+    );
+  }
+}
 
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
+function ensureMouseParallax(): void {
+  if (mouseMoveHandler) return;
+
+  const maxShift = 40;
+
+  mouseMoveHandler = (e: MouseEvent) => {
+    allBlobs.forEach(({ el, depth }) => {
+      const rect = el.parentElement?.getBoundingClientRect();
+      if (!rect) return;
       const mx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
       const my = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
 
-      blobs.forEach(({ el, depth }) => {
-        gsap.to(el, {
-          x: mx * maxShift * depth,
-          y: my * maxShift * depth,
-          duration: 1.2,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
+      gsap.to(el, {
+        x: mx * maxShift * depth,
+        y: my * maxShift * depth,
+        duration: 1.2,
+        ease: 'power2.out',
+        overwrite: 'auto',
       });
-    };
+    });
+  };
 
-    const onMouseLeave = () => {
-      blobs.forEach(({ el }) => {
-        gsap.to(el, {
-          x: 0,
-          y: 0,
-          duration: 1.5,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
+  mouseLeaveHandler = () => {
+    allBlobs.forEach(({ el }) => {
+      gsap.to(el, {
+        x: 0,
+        y: 0,
+        duration: 1.5,
+        ease: 'power2.out',
+        overwrite: 'auto',
       });
-    };
+    });
+  };
 
-    container.addEventListener('mousemove', onMouseMove);
-    container.addEventListener('mouseleave', onMouseLeave);
-    mouseListeners.set(container, onMouseMove);
-    leaveListeners.set(container, onMouseLeave);
-  });
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('mouseleave', mouseLeaveHandler);
+}
+
+export function initGradientAnimation(): void {
+  const layers = document.querySelectorAll<HTMLElement>(`.bg-layer-animation:not([${DATA_INIT}])`);
+
+  layers.forEach((layer) => populateLayer(layer));
+  ensureMouseParallax();
 }
 
 export function destroyGradientAnimation(): void {
-  const containers = document.querySelectorAll<HTMLElement>('.bg-layer-animation');
-  containers.forEach((container) => {
-    const moveListener = mouseListeners.get(container);
-    if (moveListener) {
-      container.removeEventListener('mousemove', moveListener);
-      mouseListeners.delete(container);
-    }
-    const leaveListener = leaveListeners.get(container);
-    if (leaveListener) {
-      container.removeEventListener('mouseleave', leaveListener);
-      leaveListeners.delete(container);
-    }
+  // Remove injected blobs, style tags, overlays
+  document.querySelectorAll('.gradient-blob').forEach((el) => el.remove());
+  document.querySelectorAll('[data-gradient-overlay]').forEach((el) => el.remove());
+  document.querySelectorAll(`[${DATA_INIT}]`).forEach((el) => el.removeAttribute(DATA_INIT));
 
-    container.parentElement?.querySelector('[data-gradient-overlay]')?.remove();
-    container.innerHTML = '';
-    delete container.dataset.blobId;
-  });
+  allBlobs.length = 0;
 }

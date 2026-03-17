@@ -120,5 +120,8 @@ export function initSwup(): Swup {
     });
   });
 
+  // Expose for programmatic navigation (e.g. search)
+  (window as unknown as { swup: Swup }).swup = swup;
+
   return swup;
 }

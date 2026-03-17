@@ -1,10 +1,10 @@
 /**
  * Custom tab controller for Webflow native tabs.
- * Handles tab switching independently of Webflow's JS (which breaks after SPA navigation).
+ * Replaces Webflow's JS (which breaks after SPA navigation).
  * Supports deep-linking via ?tab=slug query param.
  */
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
@@ -13,25 +13,19 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, '');
 }
 
-/**
- * Switch to a specific tab by its data-w-tab value.
- * Toggles w--current on links and w--tab-active on panes.
- */
-function switchTab(tabsContainer: Element, tabId: string): void {
-  // Update links
-  tabsContainer.querySelectorAll<HTMLElement>('.w-tab-link').forEach((link) => {
+/** Toggle w--current on links and w--tab-active on panes. */
+export function switchTab(container: Element, tabId: string): void {
+  container.querySelectorAll<HTMLElement>('.w-tab-link').forEach((link) => {
     link.classList.toggle('w--current', link.getAttribute('data-w-tab') === tabId);
   });
-
-  // Update panes
-  tabsContainer.querySelectorAll<HTMLElement>('.w-tab-pane').forEach((pane) => {
+  container.querySelectorAll<HTMLElement>('.w-tab-pane').forEach((pane) => {
     pane.classList.toggle('w--tab-active', pane.getAttribute('data-w-tab') === tabId);
   });
 }
 
 /**
- * Set up click delegation for all Webflow tabs on the page.
- * Call once — uses event delegation on document so it works across Swup navigations.
+ * Event-delegated click handler for all tab links.
+ * Call once — persists across Swup navigations.
  */
 export function setupTabs(): void {
   document.addEventListener(
@@ -44,38 +38,38 @@ export function setupTabs(): void {
       e.stopPropagation();
 
       const tabId = link.getAttribute('data-w-tab');
-      const tabsContainer = link.closest('.w-tabs');
-      if (!tabId || !tabsContainer) return;
+      const container = link.closest('.w-tabs');
+      if (!tabId || !container) return;
 
-      switchTab(tabsContainer, tabId);
+      // Flag for CSS animations — only on user click
+      const menu = container.querySelector('.w-tab-menu');
+      if (menu) {
+        menu.classList.add('is-tab-switching');
+        setTimeout(() => menu.classList.remove('is-tab-switching'), 600);
+      }
+
+      switchTab(container, tabId);
     },
     true
   );
 }
 
-/**
- * Activate the tab matching the ?tab= query param, then clean the URL.
- * Call on page load and after each Swup navigation.
- */
+/** Activate the tab matching ?tab= then clean the URL. */
 export function activateTabFromURL(): void {
   const url = new URL(window.location.href);
   const tabSlug = url.searchParams.get('tab');
   if (!tabSlug) return;
 
-  const tabLinks = document.querySelectorAll<HTMLElement>('.w-tab-link');
-  for (const link of tabLinks) {
-    const tabName = link.getAttribute('data-w-tab');
-    if (tabName && slugify(tabName) === tabSlug) {
-      const tabsContainer = link.closest('.w-tabs');
-      if (tabsContainer) switchTab(tabsContainer, tabName);
+  for (const link of document.querySelectorAll<HTMLElement>('.w-tab-link')) {
+    const name = link.getAttribute('data-w-tab');
+    if (name && slugify(name) === tabSlug) {
+      const container = link.closest('.w-tabs');
+      if (container) switchTab(container, name);
       break;
     }
   }
 
-  // Remove ?tab= from URL
   url.searchParams.delete('tab');
-  const cleanURL = url.searchParams.toString()
-    ? `${url.pathname}?${url.searchParams}`
-    : url.pathname;
-  window.history.replaceState({}, '', cleanURL);
+  const clean = url.searchParams.toString() ? `${url.pathname}?${url.searchParams}` : url.pathname;
+  window.history.replaceState({}, '', clean);
 }

@@ -13,10 +13,13 @@ import './index.css';
  */
 import { restartWebflow } from '@finsweet/ts-utils';
 
+import { initButtonIconGradient } from './animations/buttonIconGradient';
 import { destroyGradientAnimation, initGradientAnimation } from './decorative/gradientAnimation';
+import { destroyFsAttributes, initFsAttributes, restartFsAttributes } from './swup/fsAttributes';
 import { destroyFsLibrariesScripts, initFsLibrariesScripts } from './swup/fsLibraries';
 import { initSwup } from './swup/swupTransition';
 import { destroyNavbar, initNavbar, resetNavbar } from './utils/navbar';
+import { destroySearch, initSearch } from './utils/search';
 import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
 import { initTopNavLoop } from './utils/topNavLoop';
 
@@ -28,9 +31,12 @@ import { initTopNavLoop } from './utils/topNavLoop';
 
 const initGlobalFunctions = (): void => {
   // Scripts
+  initFsAttributes();
   initFsLibrariesScripts();
   initNavbar();
+  initSearch();
   initGradientAnimation();
+  initButtonIconGradient();
 };
 
 /*
@@ -96,9 +102,16 @@ const init = () => {
    * content:replace — Nouveau DOM injecté, on détruit l'ancien
    */
   swup.hooks.on('content:replace', () => {
+    destroyFsAttributes();
     destroyFsLibrariesScripts();
     destroyNavbar();
+    destroySearch();
     destroyGradientAnimation();
+
+    // Init gradients immediately so they're ready before page animates in
+    initGradientAnimation();
+
+    activateTabFromURL();
   });
 
   /**
@@ -106,7 +119,20 @@ const init = () => {
    */
   swup.hooks.on('animation:in:end', () => {
     initGlobalFunctions();
+    restartFsAttributes();
     restartWebflow();
+  });
+
+  /**
+   * page:view — Re-init when animation is skipped (e.g. search navigation)
+   * animation:in:end won't fire when animate: false, so handle it here.
+   */
+  swup.hooks.on('page:view', (visit) => {
+    if (visit.animation.animate === false) {
+      initGlobalFunctions();
+      restartFsAttributes();
+      restartWebflow();
+    }
   });
 };
 

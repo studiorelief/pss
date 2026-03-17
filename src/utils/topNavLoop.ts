@@ -18,10 +18,9 @@ export function initTopNavLoop(): void {
   const wrapper = component.querySelector<HTMLElement>('.top-nav_wrapper');
   if (!wrapper) return;
 
-  // Calculate how many clones are needed to cover the viewport + 1 extra
   const wrapperWidth = wrapper.offsetWidth;
   const viewportWidth = window.innerWidth;
-  const clonesNeeded = Math.ceil(viewportWidth / wrapperWidth);
+  const clonesNeeded = Math.ceil(viewportWidth / wrapperWidth) + 1;
 
   for (let i = 0; i < clonesNeeded; i++) {
     const clone = wrapper.cloneNode(true) as HTMLElement;
@@ -29,14 +28,35 @@ export function initTopNavLoop(): void {
     component.appendChild(clone);
   }
 
-  // Animate all wrappers together
-  const wrappers = component.querySelectorAll<HTMLElement>('.top-nav_wrapper');
+  const wrappers = gsap.utils.toArray<HTMLElement>('.top-nav_wrapper', component);
+  const count = wrappers.length;
+  const totalWidth = wrapperWidth * count;
+  const pixelsPerSecond = 60;
 
+  // Preserve original padding before switching to absolute positioning
+  const compStyle = getComputedStyle(component);
+  const padTop = parseFloat(compStyle.paddingTop);
+  const padLeft = parseFloat(compStyle.paddingLeft);
+  const paddingY = padTop + parseFloat(compStyle.paddingBottom);
+
+  gsap.set(component, { position: 'relative', overflow: 'hidden' });
+  gsap.set(wrappers, {
+    position: 'absolute',
+    left: padLeft,
+    top: padTop,
+    x: (i: number) => i * wrapperWidth,
+  });
+  component.style.height = `${wrapper.offsetHeight + paddingY}px`;
+
+  // Seamless loop using modifiers — no repeat jump
   tween = gsap.to(wrappers, {
-    xPercent: -100,
-    duration: 100,
+    x: `-=${totalWidth}`,
+    duration: totalWidth / pixelsPerSecond,
     ease: 'none',
     repeat: -1,
+    modifiers: {
+      x: gsap.utils.unitize(gsap.utils.wrap(-wrapperWidth, totalWidth - wrapperWidth)),
+    },
   });
 
   // Pause on hover
