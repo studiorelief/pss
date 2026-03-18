@@ -22,6 +22,7 @@ export function initSearch(): void {
   const loupe = document.querySelector<HTMLElement>(SEL.loupe);
   const resultWrapper = document.querySelector<HTMLElement>(SEL.resultWrapper);
   const mainWrapper = document.querySelector<HTMLElement>(SEL.mainWrapper);
+  const navBrand = document.querySelector<HTMLElement>('.nav_brand');
   if (!input || !close || !loupe || !resultWrapper || !mainWrapper) return;
 
   // Read basePadding from CSS only once — inline styles from a previous init would shadow it
@@ -70,6 +71,7 @@ export function initSearch(): void {
     close.style.display = 'none';
     resultWrapper.style.display = 'none';
     loupe.classList.remove('is-active');
+    navBrand?.style.setProperty('z-index', '1');
     isOpen = false;
   };
 
@@ -86,10 +88,11 @@ export function initSearch(): void {
     }
     input.style.display = 'flex';
     void input.offsetWidth; // reflow
-    input.style.width = '100%';
+    input.style.width = window.innerWidth < 479 ? 'calc(100% - 1rem)' : '100%';
     input.style.padding = basePadding;
     input.focus();
     loupe.classList.add('is-active');
+    navBrand?.style.setProperty('z-index', '0');
     isOpen = true;
   };
 

@@ -18,6 +18,7 @@ import { destroyGradientAnimation, initGradientAnimation } from './decorative/gr
 import { destroyFsAttributes, initFsAttributes, restartFsAttributes } from './swup/fsAttributes';
 import { destroyFsLibrariesScripts, initFsLibrariesScripts } from './swup/fsLibraries';
 import { initSwup } from './swup/swupTransition';
+import { initMarker } from './utils/marker';
 import { destroyNavbar, initNavbar, resetNavbar } from './utils/navbar';
 import { destroySearch, initSearch } from './utils/search';
 import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
@@ -37,6 +38,7 @@ const initGlobalFunctions = (): void => {
   initSearch();
   initGradientAnimation();
   initButtonIconGradient();
+  initMarker();
 };
 
 /*
