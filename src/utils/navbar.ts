@@ -53,3 +53,19 @@ export function destroyNavbar(): void {
   window.removeEventListener('scroll', onScroll);
   resetNavbar();
 }
+
+/**
+ * Set `.nav_brand` color based on current page:
+ * - /mentions-legales → primary text color
+ * - All other pages → alternate text color
+ */
+export function updateNavBrandColor(): void {
+  const navBrand = document.querySelector<HTMLElement>('.nav_brand');
+  if (!navBrand) return;
+
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  navBrand.style.color =
+    path === '/mentions-legales'
+      ? 'var(--_theme---text-color--primary)'
+      : 'var(--_theme---text-color--alternate)';
+}

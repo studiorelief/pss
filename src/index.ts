@@ -19,7 +19,7 @@ import { destroyFsAttributes, initFsAttributes, restartFsAttributes } from './sw
 import { destroyFsLibrariesScripts, initFsLibrariesScripts } from './swup/fsLibraries';
 import { initSwup } from './swup/swupTransition';
 import { initMarker } from './utils/marker';
-import { destroyNavbar, initNavbar, resetNavbar } from './utils/navbar';
+import { destroyNavbar, initNavbar, resetNavbar, updateNavBrandColor } from './utils/navbar';
 import { destroySearch, initSearch } from './utils/search';
 import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
 import { initTopNavLoop } from './utils/topNavLoop';
@@ -39,6 +39,7 @@ const initGlobalFunctions = (): void => {
   initGradientAnimation();
   initButtonIconGradient();
   initMarker();
+  updateNavBrandColor();
 };
 
 /*
@@ -112,6 +113,9 @@ const init = () => {
 
     // Init gradients immediately so they're ready before page animates in
     initGradientAnimation();
+
+    // Update nav brand color for the new page immediately
+    updateNavBrandColor();
 
     activateTabFromURL();
   });

@@ -31,7 +31,7 @@ export function initTopNavLoop(): void {
   const wrappers = gsap.utils.toArray<HTMLElement>('.top-nav_wrapper', component);
   const count = wrappers.length;
   const totalWidth = wrapperWidth * count;
-  const pixelsPerSecond = 60;
+  const pixelsPerSecond = 30;
 
   // Preserve original padding before switching to absolute positioning
   const compStyle = getComputedStyle(component);
