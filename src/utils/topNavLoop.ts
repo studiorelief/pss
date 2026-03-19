@@ -11,7 +11,9 @@ let hoverTarget: HTMLElement | null = null;
 let handleEnter: (() => void) | null = null;
 let handleLeave: (() => void) | null = null;
 
-export function initTopNavLoop(): void {
+export async function initTopNavLoop(): Promise<void> {
+  await document.fonts.ready;
+
   const component = document.querySelector<HTMLElement>('.top-nav_component');
   if (!component) return;
 
