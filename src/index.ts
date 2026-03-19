@@ -21,7 +21,7 @@ import { initSwup } from './swup/swupTransition';
 import { initMarker } from './utils/marker';
 import { destroyNavbar, initNavbar, resetNavbar, updateNavBrandColor } from './utils/navbar';
 import { destroySearch, initSearch } from './utils/search';
-import { activateTabFromURL, setupTabs } from './utils/tabDeepLink';
+import { activateAccordionFromHash, activateTabFromURL, setupTabs } from './utils/tabDeepLink';
 import { initTopNavLoop } from './utils/topNavLoop';
 
 /*
@@ -60,6 +60,9 @@ const init = () => {
   setupTabs();
   activateTabFromURL();
 
+  // Open accordion from hash after Finsweet lib loads
+  setTimeout(activateAccordionFromHash, 500);
+
   // Intercept same-page ?tab= links: skip Swup transition, just scroll top + activate tab
   document.addEventListener(
     'click',
@@ -77,8 +80,12 @@ const init = () => {
         e.preventDefault();
         e.stopPropagation();
         window.history.pushState({}, '', anchor.href);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         activateTabFromURL();
+        if (linkUrl.hash) {
+          setTimeout(activateAccordionFromHash, 100);
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
     },
     true
@@ -127,6 +134,7 @@ const init = () => {
     initGlobalFunctions();
     restartFsAttributes();
     restartWebflow();
+    setTimeout(activateAccordionFromHash, 500);
   });
 
   /**
@@ -138,6 +146,7 @@ const init = () => {
       initGlobalFunctions();
       restartFsAttributes();
       restartWebflow();
+      setTimeout(activateAccordionFromHash, 500);
     }
   });
 };

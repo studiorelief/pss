@@ -164,6 +164,30 @@
   font-weight: var(--_typography---h4--h4-font-weight);
 }
 
+.content_accordion_arrow-background-active {
+  transition: opacity 0.15s ease-out;
+}
+
+.content_accordion_header-container:hover .content_accordion_arrow-wrapper {
+  color: var(--_theme---text-color--alternate);
+  border-color: transparent;
+}
+
+.content_accordion_header-container:hover .content_accordion_arrow-background-active {
+  opacity: 1;
+}
+
+.content_collection-item.is-active-accordion
+  .content_accordion_header-container
+  .content_accordion_arrow-background-active {
+  opacity: 1;
+}
+
+.is-active-accordion .content_accordion_header-container .content_accordion_arrow-wrapper {
+  color: var(--_theme---text-color--alternate);
+  border-color: transparent;
+}
+
 /*
 *==========================================
 * SEARCH
@@ -189,4 +213,8 @@
   width: var(--_sizes---icons--large);
   opacity: 1;
   margin-right: var(--_layout---spacing--small);
+}
+
+ul ul {
+  margin-bottom: 0rem !important;
 }

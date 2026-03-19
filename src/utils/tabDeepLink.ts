@@ -70,6 +70,37 @@ export function activateTabFromURL(): void {
   }
 
   url.searchParams.delete('tab');
-  const clean = url.searchParams.toString() ? `${url.pathname}?${url.searchParams}` : url.pathname;
+  const hash = url.hash || '';
+  const clean = url.searchParams.toString()
+    ? `${url.pathname}?${url.searchParams}${hash}`
+    : `${url.pathname}${hash}`;
   window.history.replaceState({}, '', clean);
+}
+
+/** Open the accordion containing the hash anchor and scroll to it. */
+export function activateAccordionFromHash(): void {
+  const hash = window.location.hash?.slice(1);
+  if (!hash) return;
+
+  const anchor = document.getElementById(hash);
+  if (!anchor) return;
+
+  const accordionItem = anchor.closest<HTMLElement>('[fs-accordion-element="accordion"]');
+  if (!accordionItem) return;
+
+  const trigger = accordionItem.querySelector<HTMLElement>('[fs-accordion-element="trigger"]');
+  if (!trigger) return;
+
+  // Already open — just scroll
+  if (trigger.getAttribute('aria-expanded') === 'true') {
+    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  trigger.click();
+
+  // Wait for accordion open animation, then scroll
+  setTimeout(() => {
+    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 400);
 }
