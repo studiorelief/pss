@@ -1,5 +1,6 @@
 import './transition.css';
 
+import SwupGaPlugin from '@swup/ga-plugin';
 import SwupHeadPlugin from '@swup/head-plugin';
 import SwupPreloadPlugin from '@swup/preload-plugin';
 import Swup from 'swup';
@@ -26,6 +27,7 @@ export function initSwup(): Swup {
     plugins: [
       new SwupHeadPlugin({ persistAssets: true }),
       new SwupPreloadPlugin({ preloadVisibleLinks: { delay: 0, threshold: 0 } }),
+      new SwupGaPlugin({ gaId: 'G-8L709ZQ1JY' }),
     ],
   });
 
