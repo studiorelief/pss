@@ -27,7 +27,7 @@ export function initSwup(): Swup {
     plugins: [
       new SwupHeadPlugin({ persistAssets: true }),
       new SwupPreloadPlugin({ preloadVisibleLinks: { delay: 0, threshold: 0 } }),
-      new SwupGaPlugin({ gaId: 'G-8L709ZQ1JY' }),
+      new SwupGaPlugin({ gaMeasurementId: 'G-8L709ZQ1JY' }),
     ],
   });
 
