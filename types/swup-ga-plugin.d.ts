@@ -2,7 +2,7 @@ declare module '@swup/ga-plugin' {
   import type SwupPlugin from '@swup/plugin';
 
   interface SwupGaPluginOptions {
-    gaId: string;
+    gaMeasurementId: string;
   }
 
   class SwupGaPlugin extends SwupPlugin {
